@@ -1,0 +1,21 @@
+name: Verify Unikraft xray node
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Node FQDN, e.g. abc-def.sin.unikraft.app"
+        required: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download xray
+        run: |
+          curl -fsSL -o xray.zip https://github.com/XTLS/Xray-core/releases/download/v26.11.9/Xray-linux-64.zip
+          unzip -o xray.zip xray
+          chmod +x xray
+      - name: Fetch verify script (cloud-exit-node-deploy skill)
+        run: |
+          curl -fsSL -o verify_node.py https://raw.githubusercontent.com/free-dam-man/cloud-exit-node-deploy/main/scripts/verify_node.py
+      - name: End-to-end check (generate_204 must be 204 + exit IP)
+        run: python3 verify_node.py --host "${{ inputs.host }}" --uuid "${{ secrets.XRAY_UUID }}" --xray ./xray
